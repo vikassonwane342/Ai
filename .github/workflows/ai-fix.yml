@@ -30,6 +30,12 @@ jobs:
         run: |
           git config --global user.name "github-actions"
           git config --global user.email "github-actions@github.com"
+      # ✅ Clean branch name from issue
+      - name: Generate branch name
+        id: branch
+        run: |
+          TITLE=$(echo "${{ github.event.issue.title }}" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g')
+          echo "branch=bugfix-${{ github.event.issue.number }}-$TITLE" >> $GITHUB_OUTPUT
 
       - name: Create AI Script
         run: |
@@ -108,14 +114,18 @@ jobs:
           fs.writeFileSync("ai-fix.txt", output);
 
           // Git operations
-          execSync(`git checkout -b bugfix-${issueNumber}`);
+          # execSync(`git checkout -b bugfix-${issueNumber}`);
 
           // TEMP demo change
-          fs.appendFileSync("README.md", "\nAI Fix applied\n");
+          # fs.appendFileSync("README.md", "\nAI Fix applied\n");
 
-          execSync("git add .");
-          execSync(`git commit -m "AI Fix: ${issueTitle}"`);
-          execSync(`git push origin bugfix-${issueNumber}`);
+           // ✅ FORCE CHANGE (important for PR creation)
+          const timestamp = new Date().toISOString();
+          fs.appendFileSync("README.md", `\nAI Fix applied at ${timestamp}\n`);
+
+          # execSync("git add .");
+          # execSync(`git commit -m "AI Fix: ${issueTitle}"`);
+          # execSync(`git push origin bugfix-${issueNumber}`);
 
           console.log("✅ DONE");
           EOF
@@ -136,8 +146,20 @@ jobs:
           title: "AI Fix: ${{ github.event.issue.title }}"
           body: |
             🤖 Automated AI Fix using Gemini
-      
+
             Issue: ${{ github.event.issue.title }}
+
+            Generated automatically by AI workflow.     
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v5
+      #   with:
+      #     branch: ${{ steps.branch.outputs.branch }}
+      #     commit-message: "AI Fix: ${{ github.event.issue.title }}"
+      #     title: "AI Fix: ${{ github.event.issue.title }}"
+      #     body: |
+      #       🤖 Automated AI Fix using Gemini
+      
+      #       Issue: ${{ github.event.issue.title }}
             
       # - name: Create Pull Request
       #   uses: peter-evans/create-pull-request@v5
