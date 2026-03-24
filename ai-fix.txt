@@ -1,0 +1,171 @@
+Issue:
+The project is missing a `README.md` file, which is essential for providing an overview, setup instructions, and architectural details to new developers or stakeholders. The current request is to create this file based on the provided project context and architecture.
+
+Fix:
+```markdown
+FILE: README.md
+CODE:
+# Car Marketplace Platform
+
+## Project Overview
+
+The Car Marketplace Platform is a web application designed to facilitate the buying and selling of cars. It provides a comprehensive set of features for users to manage listings, browse available cars, and process orders.
+
+## Key Features
+
+*   **User Authentication**: Secure registration and login for different user roles.
+*   **Car Listing Management**: Sellers can create, update, and delete car listings.
+*   **Search and Filter Cars**: Buyers can efficiently find cars based on various criteria.
+*   **Order/Booking System**: Users can book cars, and view their order history.
+
+## User Roles
+
+The platform supports the following distinct user roles, each with specific permissions:
+
+*   **Buyer**: Can browse listings, search for cars, and book/purchase cars.
+*   **Seller**: Can create, update, and delete their own car listings.
+*   **Admin**: Has elevated privileges, including the ability to view, lock/unlock users, and manage listings across the platform.
+
+## Core Modules
+
+1.  **Authentication**:
+    *   User Registration
+    *   User Login
+    *   JWT (JSON Web Token) based authentication for secure API access.
+
+2.  **Car Listings**:
+    *   Create New Listings
+    *   Update Existing Listings
+    *   Delete Listings
+    *   View All Listings (or filtered listings)
+
+3.  **Orders**:
+    *   Book Car (initiate purchase process)
+    *   View Order History for buyers.
+
+## Business Rules
+
+*   Only users with the 'Seller' role can create car listings.
+*   Users with the 'Buyer' role are restricted to viewing and purchasing cars.
+*   All car listings must include essential details such as price and specifications.
+*   Administrators have full visibility and control over user accounts and car listings (e.g., locking/unlocking users, managing listings).
+
+## Tech Stack
+
+*   **Backend**: ASP.NET Core Web API (.NET 10)
+*   **Frontend**: Angular
+*   **Database**: SQL Server
+*   **Data Access**: Dapper (for efficient data operations)
+*   **API Documentation**: Swagger/OpenAPI
+
+## Architecture Overview
+
+The Car Marketplace Platform adheres to the **Clean Architecture** pattern, emphasizing separation of concerns, testability, and maintainability.
+
+### Layers
+
+1.  **API Layer**:
+    *   **Components**: Controllers.
+    *   **Responsibility**: Handles incoming HTTP requests, performs input validation, and orchestrates calls to the Application layer. It acts as the entry point for external interactions.
+
+2.  **Application Layer**:
+    *   **Components**: Application Services, Data Transfer Objects (DTOs), Interfaces for external services (e.g., repositories).
+    *   **Responsibility**: Contains the core business logic and use cases of the application. It orchestrates domain entities and interacts with the Infrastructure layer via interfaces.
+
+3.  **Domain Layer**:
+    *   **Components**: Entities, Value Objects, Domain Events, Domain Services, Interfaces representing core business rules.
+    *   **Responsibility**: Encapsulates the enterprise-wide business rules and knowledge. It is independent of any technology and forms the heart of the application.
+
+4.  **Infrastructure Layer**:
+    *   **Components**: Implementations of repository interfaces (e.g., Dapper queries), database contexts, external service integrations (e.g., email services, logging providers).
+    *   **Responsibility**: Provides the technical details for implementing interfaces defined in the Domain and Application layers. It handles concerns like database access, file system operations, and external API calls.
+
+### Request Flow
+
+A typical request flows through the layers as follows:
+
+`HTTP Request` → `Controller (API Layer)` → `Service (Application Layer)` → `Repository (Infrastructure Layer via Application/Domain Interface)` → `Database`
+
+### Architectural Rules
+
+*   **Thin Controllers**: Controllers should be minimal, primarily handling request routing and calling the appropriate Application layer services.
+*   **Business Logic Encapsulation**: All core business logic resides exclusively within the Application layer.
+*   **No Direct Database Calls from Controllers**: Controllers must not directly interact with the database; all data access is abstracted through repositories in the Infrastructure layer.
+*   **DTOs for API Communication**: Data Transfer Objects (DTOs) are used consistently for all communication between the API layer and clients, as well as between API and Application layers, to decouple internal domain models from external representations.
+
+## Naming Conventions
+
+To maintain consistency and readability:
+
+*   **Controllers**: Suffix with `Controller` (e.g., `ProductsController`).
+*   **Services**: Suffix with `Service` (e.g., `ProductService`).
+*   **Repositories**: Suffix with `Repository` (e.g., `ProductRepository`).
+*   **DTOs**: Suffix with `Dto` (e.g., `ProductDto`).
+
+## Error Handling
+
+*   A centralized error handling middleware is implemented to catch and process exceptions across the application.
+*   Errors are returned in a standard, consistent response format for easy client consumption.
+
+## Logging
+
+*   Structured logging is employed to capture application events and diagnostic information.
+*   Critical errors and important business actions are logged to aid in debugging and monitoring.
+
+## Getting Started
+
+To get the Car Marketplace Platform up and running, follow these general steps:
+
+### Prerequisites
+
+*   .NET SDK 10.0 or higher
+*   Node.js and npm/yarn (for Angular frontend)
+*   SQL Server (and SQL Server Management Studio or similar client)
+*   Git
+
+### Backend Setup (ASP.NET Core Web API)
+
+1.  **Clone the Repository**:
+    ```bash
+    git clone <repository-url>
+    cd CarMarketplace.Api
+    ```
+2.  **Restore Dependencies**:
+    ```bash
+    dotnet restore
+    ```
+3.  **Database Configuration**:
+    *   Update the connection string in `appsettings.json` (or `appsettings.Development.json`) to point to your SQL Server instance.
+    *   Run database migrations (if applicable, though Dapper typically works with pre-existing schemas or direct SQL). If EF Core migrations are used, run `dotnet ef database update`. For Dapper, ensure your database schema is set up.
+4.  **Run the API**:
+    ```bash
+    dotnet run
+    ```
+    The API will typically start on `https://localhost:5001` (or a similar port). Swagger UI will be available at `/swagger`.
+
+### Frontend Setup (Angular)
+
+1.  **Navigate to Frontend Directory**:
+    ```bash
+    cd ../CarMarketplace.Frontend # Assuming frontend is in a sibling directory
+    ```
+2.  **Install Dependencies**:
+    ```bash
+    npm install # or yarn install
+    ```
+3.  **Configure API Endpoint**:
+    *   Edit the environment file (`src/environments/environment.ts` or `environment.prod.ts`) to point to your running backend API URL (e.g., `apiUrl: 'https://localhost:5001/api'`).
+4.  **Run the Frontend**:
+    ```bash
+    ng serve
+    ```
+    The Angular application will typically be accessible at `http://localhost:4200`.
+
+## Contribution
+
+Contributions are welcome! Please fork the repository, create a new branch, and submit a pull request with your changes. Ensure your code adheres to the existing architectural patterns and conventions.
+
+## License
+
+[License Information - e.g., MIT, Apache 2.0, or proprietary]
+```
