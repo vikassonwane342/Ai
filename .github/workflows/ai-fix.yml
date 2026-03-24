@@ -1,5 +1,6 @@
 name: AI Auto Fix
-
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 on:
   issues:
     types: [assigned]
