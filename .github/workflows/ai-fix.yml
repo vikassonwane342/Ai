@@ -127,15 +127,26 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
         run: node ai-script.mjs
-
+        
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
         with:
-          branch: bugfix-${{ github.event.issue.number }}
+          branch: ${{ steps.branch.outputs.branch }}
+          commit-message: "AI Fix: ${{ github.event.issue.title }}"
           title: "AI Fix: ${{ github.event.issue.title }}"
           body: |
             🤖 Automated AI Fix using Gemini
-
+      
             Issue: ${{ github.event.issue.title }}
+            
+      # - name: Create Pull Request
+      #   uses: peter-evans/create-pull-request@v5
+      #   with:
+      #     branch: bugfix-${{ github.event.issue.number }}
+      #     title: "AI Fix: ${{ github.event.issue.title }}"
+      #     body: |
+      #       🤖 Automated AI Fix using Gemini
 
-            Generated automatically by AI workflow.
+      #       Issue: ${{ github.event.issue.title }}
+
+      #       Generated automatically by AI workflow.
