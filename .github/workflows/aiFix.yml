@@ -1,0 +1,191 @@
+name: AI Auto Fix
+
+on:
+  issues:
+    types: [assigned]
+
+jobs:
+  fix-issue:
+    if: contains(github.event.issue.title, '[AI]')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm install openai
+
+      - name: Create AI Script
+        run: |
+          cat << 'EOF' > ai-script.mjs
+          import OpenAI from "openai";
+          import fs from "fs";
+          import { execSync } from "child_process";
+
+          const client = new OpenAI({
+            apiKey: process.env.OPENAI_API_KEY
+          });
+
+          const issueTitle = process.env.ISSUE_TITLE;
+          const issueBody = process.env.ISSUE_BODY || "No description provided";
+          const issueNumber = process.env.ISSUE_NUMBER;
+
+          console.log("🚀 AI AGENT STARTED");
+          console.log("Issue:", issueTitle);
+
+          function readFileSafe(path) {
+            try {
+              return fs.readFileSync(path, "utf8");
+            } catch {
+              return "";
+            }
+          }
+
+          const architecture = readFileSafe("docs/architecture.md");
+          const conventions = readFileSafe("docs/conventions.md");
+          const project = readFileSafe("docs/project.md");
+          const skill = readFileSafe("skills/bug-fixer.md");
+
+          // STEP 1: ANALYSIS
+          console.log("🔍 ANALYSIS");
+
+          const analysisRes = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: "You are a senior .NET debugging expert."
+              },
+              {
+                role: "user",
+                content: `
+          Analyze this issue.
+
+          Title:
+          ${issueTitle}
+
+          Description:
+          ${issueBody}
+
+          Context:
+          ${project}
+
+          Return:
+          - root cause
+          - affected files
+          - fix approach
+          `
+              }
+            ]
+          });
+
+          const analysis = analysisRes.choices[0].message.content;
+          console.log(analysis);
+
+          // STEP 2: FIX
+          console.log("🛠 FIX");
+
+          const fixRes = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: `
+          You are a senior .NET developer.
+
+          Follow:
+          ${architecture}
+          ${conventions}
+          ${skill}
+          `
+              },
+              {
+                role: "user",
+                content: `
+          Issue:
+          ${issueTitle}
+
+          Details:
+          ${issueBody}
+
+          Analysis:
+          ${analysis}
+
+          Generate fix.
+
+          Format:
+          FILE: path/to/file.cs
+          CODE:
+          <full code>
+          `
+              }
+            ]
+          });
+
+          const fix = fixRes.choices[0].message.content;
+          console.log(fix);
+
+          // STEP 3: REVIEW
+          console.log("🔍 REVIEW");
+
+          const reviewRes = await client.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+              {
+                role: "system",
+                content: "You are a strict code reviewer."
+              },
+              {
+                role: "user",
+                content: `
+          Review this fix:
+
+          ${fix}
+
+          Improve it if needed.
+          `
+              }
+            ]
+          });
+
+          const finalFix = reviewRes.choices[0].message.content;
+
+          fs.writeFileSync("ai-fix.txt", finalFix);
+
+          // Git operations
+          execSync(`git checkout -b bugfix-${issueNumber}`);
+
+          fs.appendFileSync("README.md", "\nAI Fix applied\n");
+
+          execSync("git add .");
+          execSync(`git commit -m "AI Fix: ${issueTitle}"`);
+          execSync(`git push origin bugfix-${issueNumber}`);
+
+          console.log("✅ DONE");
+          EOF
+
+      - name: Run AI Script
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: node ai-script.mjs
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          branch: bugfix-${{ github.event.issue.number }}
+          title: "AI Fix: ${{ github.event.issue.title }}"
+          body: |
+            🤖 Automated AI Fix
+
+            Issue: ${{ github.event.issue.title }}
+
+            Generated using AI workflow.
