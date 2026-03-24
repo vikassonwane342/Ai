@@ -30,7 +30,7 @@ jobs:
           import { execSync } from "child_process";
 
           const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+          const model = genAI.getGenerativeModel({  model: "models/gemini-2.5-flash" });
 
           const issueTitle = process.env.ISSUE_TITLE;
           const issueBody = process.env.ISSUE_BODY || "No description provided";
