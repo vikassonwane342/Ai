@@ -1,0 +1,9 @@
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.csproj.AssemblyReference.cache
+D:\Source\Ai\obj\Debug\net10.0\rpswa.dswa.cache.json
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.GeneratedMSBuildEditorConfig.editorconfig
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.AssemblyInfoInputs.cache
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.AssemblyInfo.cs
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.csproj.CoreCompileInputs.cache
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.MvcApplicationPartsAssemblyInfo.cs
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.MvcApplicationPartsAssemblyInfo.cache
+D:\Source\Ai\obj\Debug\net10.0\CarMarketplace.Api.sourcelink.json

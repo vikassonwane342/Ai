@@ -1,7 +1,7 @@
 # Architecture Overview
 
 ## Tech Stack
-- Backend: ASP.NET Core Web API (.NET 8)
+- Backend: ASP.NET Core Web API (.NET 10) with swagger 
 - Frontend: Angular (if applicable)
 - Database: SQL Server
 - Data Access: Dapper

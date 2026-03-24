@@ -1,0 +1,48 @@
+@CarMarketplace.Api_HostAddress = http://localhost:5146
+@token = replace-with-jwt
+
+### Register seller
+POST {{CarMarketplace.Api_HostAddress}}/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Seller",
+  "email": "seller@example.com",
+  "phone": "+15555555555",
+  "password": "Seller@123",
+  "role": "Seller"
+}
+
+### Login
+POST {{CarMarketplace.Api_HostAddress}}/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "seller@example.com",
+  "password": "Seller@123"
+}
+
+### Public cars
+GET {{CarMarketplace.Api_HostAddress}}/api/cars?page=1&pageSize=10
+Accept: application/json
+
+### Create car
+POST {{CarMarketplace.Api_HostAddress}}/api/cars
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "2019 Honda Civic",
+  "brand": "Honda",
+  "model": "Civic",
+  "year": 2019,
+  "price": 15500,
+  "mileage": 42000,
+  "fuelType": "Petrol",
+  "transmission": "Automatic",
+  "description": "Single owner and service history available.",
+  "imageUrls": [
+    "https://example.com/images/civic-front.jpg"
+  ]
+}
