@@ -19,24 +19,23 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm install openai
+        run: npm install @google/generative-ai
 
       - name: Create AI Script
         run: |
           cat << 'EOF' > ai-script.mjs
-          import OpenAI from "openai";
+          import { GoogleGenerativeAI } from "@google/generative-ai";
           import fs from "fs";
           import { execSync } from "child_process";
 
-          const client = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY
-          });
+          const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+          const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
           const issueTitle = process.env.ISSUE_TITLE;
           const issueBody = process.env.ISSUE_BODY || "No description provided";
           const issueNumber = process.env.ISSUE_NUMBER;
 
-          console.log("🚀 AI AGENT STARTED");
+          console.log("🚀 GEMINI AI STARTED");
           console.log("Issue:", issueTitle);
 
           function readFileSafe(path) {
@@ -52,20 +51,10 @@ jobs:
           const project = readFileSafe("docs/project.md");
           const skill = readFileSafe("skills/bug-fixer.md");
 
-          // STEP 1: ANALYSIS
-          console.log("🔍 ANALYSIS");
+          const prompt = `
+          You are a senior .NET developer.
 
-          const analysisRes = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: "You are a senior .NET debugging expert."
-              },
-              {
-                role: "user",
-                content: `
-          Analyze this issue.
+          Fix this issue:
 
           Title:
           ${issueTitle}
@@ -73,94 +62,46 @@ jobs:
           Description:
           ${issueBody}
 
-          Context:
+          Project Context:
           ${project}
 
-          Return:
-          - root cause
-          - affected files
-          - fix approach
-          `
-              }
-            ]
-          });
-
-          const analysis = analysisRes.choices[0].message.content;
-          console.log(analysis);
-
-          // STEP 2: FIX
-          console.log("🛠 FIX");
-
-          const fixRes = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: `
-          You are a senior .NET developer.
-
-          Follow:
+          Architecture:
           ${architecture}
+
+          Conventions:
           ${conventions}
+
+          Skill:
           ${skill}
-          `
-              },
-              {
-                role: "user",
-                content: `
-          Issue:
-          ${issueTitle}
 
-          Details:
-          ${issueBody}
+          Tasks:
+          1. Identify root cause
+          2. Fix the issue
+          3. Follow clean architecture
 
-          Analysis:
-          ${analysis}
-
-          Generate fix.
+          IMPORTANT:
+          - Return ONLY changed files
+          - Include FULL file path
+          - Provide COMPLETE code
 
           Format:
+
           FILE: path/to/file.cs
           CODE:
           <full code>
-          `
-              }
-            ]
-          });
+          `;
 
-          const fix = fixRes.choices[0].message.content;
-          console.log(fix);
+          const result = await model.generateContent(prompt);
+          const output = result.response.text();
 
-          // STEP 3: REVIEW
-          console.log("🔍 REVIEW");
+          console.log("AI OUTPUT:\n", output);
 
-          const reviewRes = await client.chat.completions.create({
-            model: "gpt-4o-mini",
-            messages: [
-              {
-                role: "system",
-                content: "You are a strict code reviewer."
-              },
-              {
-                role: "user",
-                content: `
-          Review this fix:
-
-          ${fix}
-
-          Improve it if needed.
-          `
-              }
-            ]
-          });
-
-          const finalFix = reviewRes.choices[0].message.content;
-
-          fs.writeFileSync("ai-fix.txt", finalFix);
+          fs.writeFileSync("ai-fix.txt", output);
 
           // Git operations
           execSync(`git checkout -b bugfix-${issueNumber}`);
 
+          // TEMP demo change
           fs.appendFileSync("README.md", "\nAI Fix applied\n");
 
           execSync("git add .");
@@ -172,7 +113,7 @@ jobs:
 
       - name: Run AI Script
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
@@ -184,8 +125,8 @@ jobs:
           branch: bugfix-${{ github.event.issue.number }}
           title: "AI Fix: ${{ github.event.issue.title }}"
           body: |
-            🤖 Automated AI Fix
+            🤖 Automated AI Fix using Gemini
 
             Issue: ${{ github.event.issue.title }}
 
-            Generated using AI workflow.
+            Generated automatically by AI workflow.
